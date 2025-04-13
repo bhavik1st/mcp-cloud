@@ -172,3 +172,13 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pdm-build/
+.pdm-python/
+.pdm.toml
+.pdm-python

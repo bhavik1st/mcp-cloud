@@ -3,6 +3,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Model Context Protocol Server for Public Cloud environments like AWS, Azure, and more.
+mcp-cloud is a Python MCP server:
+- Connects to public cloud to access resources like S3 Buckets, Azure Blobs
+- Provides tools performing certain operations like CRUD on resources.
 
 ## Overview
 
@@ -26,7 +29,7 @@ Resources: File-like data that can be read by clients (like API responses or fil
 Tools: Functions that can be called by the LLM (with user approval)
 Prompts: Pre-written templates that help users accomplish specific tasks
 
-Initial version of MCP Server will focus on resources available of Public Clouds e.g S3 Buckets, Azure Blobs etc. for now.
+Initial version of MCP Server will focus on resources available of Public Clouds e.g S3 Buckets, Azure for now.
 
 
 # Features
