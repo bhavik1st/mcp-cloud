@@ -31,6 +31,27 @@ Prompts: Pre-written templates that help users accomplish specific tasks
 
 Initial version of MCP Server will focus on resources available of Public Clouds e.g S3 Buckets, Azure for now.
 
+MCP Primitives
+The MCP protocol defines three core primitives that servers can implement:
+
+Primitive	Control	Description	Example Use
+Prompts	User-controlled	Interactive templates invoked by user choice	Slash commands, menu options
+Resources	Application-controlled	Contextual data managed by the client application	File contents, API responses
+Tools	Model-controlled	Functions exposed to the LLM to take actions	API calls, data updates
+
+Running MCP Server
+
+```bash
+python src/main.py
+```
+or
+```bash
+uv run --with mcp mcp run main.py
+```
+
+mcp install main.py 
+mcp dev main.py 
+
 
 # Features
 0.1 
@@ -43,6 +64,98 @@ TODO: Update
 
 # Steps to Use
 TODO:   
+
+## Environment Setup
+
+To set up your cloud storage credentials, you can use the provided environment setup script:
+
+```bash
+python src/set_env.py
+```
+
+This will:
+1. Prompt you for your cloud provider credentials
+2. Create a `.env` file with your settings
+3. Verify that the environment variables are set correctly
+
+The script will ask for:
+- Cloud Provider (aws/azure/google)
+- Access Key
+- Secret Key
+- Region (defaults to us-east-1)
+
+Alternatively, you can manually create a `.env` file with the following variables:
+```
+CLOUD_PROVIDER=your_provider
+CLOUD_ACCESS_KEY=your_access_key
+CLOUD_SECRET_KEY=your_secret_key
+CLOUD_REGION=your_region
+```
+
+## Loading Environment Variables in System
+
+### Unix/Linux/MacOS
+Using `source` command:
+```bash
+source .env
+```
+
+Or using `export` command:
+```bash
+export $(cat .env | xargs)
+```
+
+### Windows
+Command Prompt:
+```cmd
+for /f "tokens=*" %a in (.env) do set %a
+```
+
+PowerShell:
+```powershell
+Get-Content .env | ForEach-Object {
+    if ($_ -match '^([^=]+)=(.*)$') {
+        $name = $matches[1]
+        $value = $matches[2]
+        Set-Item -Path "Env:$name" -Value $value
+    }
+}
+```
+
+### Verifying Environment Variables
+- Unix/Linux/MacOS: `printenv | grep CLOUD_`
+- Windows: `set | findstr CLOUD_`
+
+### Important Notes
+1. The .env file should be in your project root directory
+2. Each variable should be on a new line
+3. No spaces around the = sign
+4. No quotes around values unless they're part of the value
+
+Example .env file format:
+```
+CLOUD_PROVIDER=aws
+CLOUD_ACCESS_KEY=your_access_key
+CLOUD_SECRET_KEY=your_secret_key
+CLOUD_REGION=us-east-1
+```
+
+## Testing
+
+The MCP Cloud Server includes comprehensive testing options to ensure everything is working correctly.
+
+### Quick Start Testing
+
+```bash
+# Run unit tests
+python src/test_mcp_server.py
+
+# Test with MCP Inspect
+python src/main.py  # In one terminal
+mcp-inspect info --url http://localhost:7008  # In another terminal
+```
+
+For detailed testing instructions, including how to test with Claude Desktop, see [TESTING.md](TESTING.md).
 
 
 
