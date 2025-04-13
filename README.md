@@ -49,9 +49,11 @@ or
 uv run --with mcp mcp run main.py
 ```
 
+Using mcp commands  & mcp inspector
+```bash
 mcp install main.py 
-mcp dev main.py 
-
+mcp dev main.py
+```
 
 # Features
 0.1 
@@ -157,5 +159,33 @@ mcp-inspect info --url http://localhost:7008  # In another terminal
 
 For detailed testing instructions, including how to test with Claude Desktop, see [TESTING.md](TESTING.md).
 
+# Testing with Claude Desktop
+
+
+```json
+{
+  "mcpServers": {
+    "mcp-cloud": {
+      "command": "<path to uv>/uv", 
+      "args": [
+        "--directory",
+        "<path_to_mcp_cloud>e/mcp-cloud/src",
+        "run",
+        "--with",
+        "mcp",
+        "mcp",
+        "run",
+        "main.py"
+      ],
+      "env": {
+        "CLOUD_PROVIDER": "aws",
+        "CLOUD_ACCESS_KEY": "*******",
+        "CLOUD_SECRET_KEY": "*******",
+        "CLOUD_REGION": "us-east-1"
+      }
+    }
+  }
+}
+```
 
 
