@@ -16,6 +16,7 @@ def register_storage(mcp_instance):
     mcp.tool(name="list_buckets")(list_buckets)
     mcp.tool(name="get_bucket_details")(get_bucket_details)
     mcp.tool(name="list_objects")(list_objects)
+    mcp.tool(name="list_all_objects")(list_all_objects)
     mcp.tool(name="get_object")(get_object)
     mcp.tool(name="download_object")(download_object)
     mcp.tool(name="upload_object")(upload_object)
@@ -114,6 +115,57 @@ async def list_objects(bucket_name: str) -> List[Dict[str, Any]]:
         
     except LibcloudError as e:
         return [{"error": f"Error listing objects: {str(e)}"}]
+    except Exception as e:
+        return [{"error": f"Unexpected error: {str(e)}"}]
+
+async def list_all_objects(bucket_name: str, prefix: str = None, delimiter: str = None) -> List[Dict[str, Any]]:
+    """
+    List all objects in a bucket, including those in folders.
+    
+    Args:
+        bucket_name (str): Name of the bucket to list objects from
+        prefix (str, optional): Filter results to objects whose names begin with this prefix
+        delimiter (str, optional): Group common prefixes into a single result
+        
+    Returns:
+        List[Dict[str, Any]]: List of objects and common prefixes in the bucket
+    """
+    try:
+        if not cloud.driver:
+            return [{"error": "Cloud driver not initialized"}]
+            
+        container = cloud.driver.get_container(bucket_name)
+        
+        # Get objects with optional prefix and delimiter
+        objects = container.list_objects(prefix=prefix, delimiter=delimiter)
+        
+        # Process results
+        result = []
+        
+        # Add objects
+        for obj in objects:
+            result.append({
+                'name': obj.name,
+                'size': obj.size,
+                'hash': obj.hash,
+                'container': obj.container.name,
+                'extra': obj.extra,
+                'type': 'object'
+            })
+            
+        # Add common prefixes (folders)
+        if hasattr(objects, 'prefixes') and objects.prefixes:
+            for prefix in objects.prefixes:
+                result.append({
+                    'name': prefix,
+                    'type': 'folder',
+                    'container': bucket_name
+                })
+                
+        return result
+        
+    except LibcloudError as e:
+        return [{"error": f"Error listing all objects: {str(e)}"}]
     except Exception as e:
         return [{"error": f"Unexpected error: {str(e)}"}]
 
