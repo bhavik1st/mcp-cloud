@@ -13,11 +13,17 @@ def register_storage(mcp_instance):
     mcp = mcp_instance
     
     # Register all tool functions
-    mcp.tool(name="initialize_cloud_driver")(initialize_cloud_driver)
     mcp.tool(name="list_buckets")(list_buckets)
     mcp.tool(name="get_bucket_details")(get_bucket_details)
     mcp.tool(name="list_objects")(list_objects)
+    mcp.tool(name="get_object")(get_object)
+    mcp.tool(name="download_object")(download_object)
+    mcp.tool(name="upload_object")(upload_object)
+    #mcp.tool(name="delete_object")(delete_object)
     
+    # Register resource endpoints
+    mcp.resource("/storage/objects/{bucket_name}/{object_name}")(get_object_resource)
+    mcp.resource("/storage/download/{bucket_name}/{object_name}")(download_object_resource)
     return True
 
 # Tool functions
@@ -80,74 +86,20 @@ async def get_bucket_details(bucket_name: str) -> Dict[str, Any]:
     except Exception as e:
         return {"error": f"Failed to get bucket details: {str(e)}"}    
 
-# Async API functions
-async def list_buckets_async(provider: str = None, credentials: Dict[str, str] = None) -> List[Dict[str, Any]]:
-    """
-    List all buckets/containers from the specified cloud provider.
-    
-    Args:
-        provider (str): Cloud provider name (aws, google, azure, digitalocean)
-        credentials (Dict[str, str]): Provider-specific credentials
-        
-    Returns:
-        List[Dict[str, Any]]: List of buckets with their details
-    """
-
-    try:
-        # List all containers/buckets
-        containers = cloud.driver.list_containers()
-        
-        # Convert containers to dictionary format
-        return [{
-            'name': container.name,
-            'provider': cloud.provider,
-            'status': 'connected'
-        } for container in containers]
-        
-    except LibcloudError as e:
-        raise Exception(f"Error listing buckets: {str(e)}")
-    except Exception as e:
-        raise Exception(f"Unexpected error: {str(e)}")
-
-async def get_bucket_details_async(provider: str, credentials: Dict[str, str], bucket_name: str) -> Dict[str, Any]:
-    """
-    Get detailed information about a specific bucket.
-    
-    Args:
-        provider (str): Cloud provider name
-        credentials (Dict[str, str]): Provider-specific credentials
-        bucket_name (str): Name of the bucket to get details for
-        
-    Returns:
-        Dict[str, Any]: Bucket details
-    """
-    try:
-        container = cloud.driver.get_container(bucket_name)
-        
-        return {
-            'name': container.name,
-            'provider': cloud.provider,
-            'objects_count': len(list(container.list_objects()))
-        }
-        
-    except LibcloudError as e:
-        raise Exception(f"Error getting bucket details: {str(e)}")
-    except Exception as e:
-        raise Exception(f"Unexpected error: {str(e)}")
-
-async def list_objects(provider: str, credentials: Dict[str, str], bucket_name: str) -> List[Dict[str, Any]]:
+async def list_objects(bucket_name: str) -> List[Dict[str, Any]]:
     """
     List all objects in a specific bucket.
     
     Args:
-        provider (str): Cloud provider name
-        credentials (Dict[str, str]): Provider-specific credentials
         bucket_name (str): Name of the bucket to list objects from
         
     Returns:
         List[Dict[str, Any]]: List of objects in the bucket
     """
     try:
+        if not cloud.driver:
+            return [{"error": "Cloud driver not initialized"}]
+            
         container = cloud.driver.get_container(bucket_name)
         objects = container.list_objects()
         
@@ -161,6 +113,168 @@ async def list_objects(provider: str, credentials: Dict[str, str], bucket_name: 
         } for obj in objects]
         
     except LibcloudError as e:
-        raise Exception(f"Error listing objects: {str(e)}")
+        return [{"error": f"Error listing objects: {str(e)}"}]
     except Exception as e:
-        raise Exception(f"Unexpected error: {str(e)}")
+        return [{"error": f"Unexpected error: {str(e)}"}]
+
+async def get_object(bucket_name: str, object_name: str) -> Dict[str, Any]:
+    """
+    Get details about a specific object in a bucket.
+    
+    Args:
+        bucket_name (str): Name of the bucket containing the object
+        object_name (str): Name of the object to retrieve
+        
+    Returns:
+        Dict[str, Any]: Object details
+    """
+    try:
+        if not cloud.driver:
+            return {"error": "Cloud driver not initialized"}
+            
+        container = cloud.driver.get_container(bucket_name)
+        obj = container.get_object(object_name)
+        
+        return {
+            'name': obj.name,
+            'size': obj.size,
+            'hash': obj.hash,
+            'container': obj.container.name,
+            'extra': obj.extra,
+            'driver': cloud.provider
+        }
+        
+    except LibcloudError as e:
+        return {"error": f"Error getting object: {str(e)}"}
+    except Exception as e:
+        return {"error": f"Unexpected error: {str(e)}"}
+
+async def download_object(bucket_name: str, object_name: str, destination_path: str) -> Dict[str, Any]:
+    """
+    Download an object from a bucket to a local file.
+    
+    Args:
+        bucket_name (str): Name of the bucket containing the object
+        object_name (str): Name of the object to download
+        destination_path (str): Local path where the object should be saved
+        
+    Returns:
+        Dict[str, Any]: Download result
+    """
+    try:
+        if not cloud.driver:
+            return {"error": "Cloud driver not initialized"}
+            
+        # Ensure the destination directory exists
+        os.makedirs(os.path.dirname(os.path.abspath(destination_path)), exist_ok=True)
+            
+        container = cloud.driver.get_container(bucket_name)
+        obj = container.get_object(object_name)
+        
+        # Download the object
+        result = container.download_object(obj, destination_path, overwrite_existing=True)
+        
+        if result:
+            return {
+                'status': 'success',
+                'message': f'Object {object_name} downloaded successfully',
+                'destination': destination_path,
+                'size': obj.size,
+                'object_name': object_name,
+                'bucket_name': bucket_name
+            }
+        else:
+            return {"error": f"Failed to download object {object_name}"} 
+        
+    except LibcloudError as e:
+        return {"error": f"Error downloading object: {str(e)}"}
+    except Exception as e:
+        return {"error": f"Unexpected error: {str(e)}"}
+
+async def upload_object(bucket_name: str, object_name: str, file_path: str) -> Dict[str, Any]:
+    """
+    Upload a local file to a bucket as an object.
+    
+    Args:
+        bucket_name (str): Name of the bucket to upload to
+        object_name (str): Name to give the uploaded object
+        file_path (str): Local path of the file to upload
+        
+    Returns:
+        Dict[str, Any]: Upload result
+    """
+    try:
+        if not cloud.driver:
+            return {"error": "Cloud driver not initialized"}
+            
+        # Check if file exists
+        if not os.path.exists(file_path):
+            return {"error": f"File not found: {file_path}"}
+            
+        container = cloud.driver.get_container(bucket_name)
+        
+        # Upload the file
+        with open(file_path, 'rb') as file_obj:
+            obj = container.upload_object_via_stream(iterator=file_obj, object_name=object_name)
+        
+        return {
+            'status': 'success',
+            'message': f'Object {object_name} uploaded successfully',
+            'name': obj.name,
+            'size': obj.size,
+            'hash': obj.hash,
+            'container': obj.container.name
+        }
+        
+    except LibcloudError as e:
+        return {"error": f"Error uploading object: {str(e)}"}
+    except Exception as e:
+        return {"error": f"Unexpected error: {str(e)}"}
+
+async def delete_object(bucket_name: str, object_name: str) -> Dict[str, Any]:
+    """
+    Delete an object from a bucket.
+    
+    Args:
+        bucket_name (str): Name of the bucket containing the object
+        object_name (str): Name of the object to delete
+        
+    Returns:
+        Dict[str, Any]: Deletion result
+    """
+    try:
+        if not cloud.driver:
+            return {"error": "Cloud driver not initialized"}
+            
+        container = cloud.driver.get_container(bucket_name)
+        obj = container.get_object(object_name)
+        
+        # Delete the object
+        result = container.delete_object(obj)
+        
+        if result:
+            return {
+                'status': 'success',
+                'message': f'Object {object_name} deleted successfully',
+                'object_name': object_name,
+                'bucket_name': bucket_name
+            }
+        else:
+            return {"error": f"Failed to delete object {object_name}"}
+        
+    except LibcloudError as e:
+        return {"error": f"Error deleting object: {str(e)}"}
+    except Exception as e:
+        return {"error": f"Unexpected error: {str(e)}"}
+
+# Resource endpoints
+async def get_object_resource(bucket_name: str, object_name: str) -> Dict[str, Any]:
+    """Resource endpoint to get object details"""
+    return await get_object(bucket_name, object_name)
+
+async def download_object_resource(bucket_name: str, object_name: str) -> Dict[str, Any]:
+    """Resource endpoint to download an object"""
+    # Use a default download path since we can't access request parameters
+    destination_path = f'./downloads/{object_name}'
+    
+    return await download_object(bucket_name, object_name, destination_path)

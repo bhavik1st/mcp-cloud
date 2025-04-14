@@ -26,4 +26,8 @@ logger.info("Registered all storage tools and functions")
 # Entry point to run the server
 if __name__ == "__main__":
     logger.info("Starting MCP server")
-    mcp.run()
+    try:
+        mcp.run()
+    except Exception as e:
+        logger.error(f"Error running MCP server: {str(e)}")
+        sys.exit(1)
