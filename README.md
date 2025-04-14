@@ -7,6 +7,8 @@ mcp-cloud is a Python MCP server:
 - Connects to public cloud to access resources like S3 Buckets, Azure Blobs
 - Provides tools performing certain operations like CRUD on resources.
 
+NOTE: This a technology demonstrator only to be used with test data / account in cloud or with local LLM models like llama.
+       
 ## Overview
 
 mcp-cloud is a Python server implementation of the Model Context Protocol (MCP) designed specifically for public cloud environments. It enables AI models to seamlessly connect with various cloud resources and services.
