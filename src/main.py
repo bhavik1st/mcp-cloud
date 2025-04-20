@@ -5,6 +5,7 @@ import sys
 # Import modules - order is important
 import cloud
 import storage
+import compute
 from cloud import logger
 
 # Initialize cloud driver before starting the server
@@ -22,6 +23,10 @@ logger.info("Initialized MCP server: mcp-cloud")
 # Register storage tools and functions
 storage.register_storage(mcp)
 logger.info("Registered all storage tools and functions")
+
+# Register compute tools and functions
+compute.register_compute(mcp)
+logger.info("Registered all compute tools and functions")
 
 # Entry point to run the server
 if __name__ == "__main__":
