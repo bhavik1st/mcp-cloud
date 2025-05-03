@@ -173,6 +173,8 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+.vscode/
+
 
 .venv/
 venv/
@@ -182,3 +184,9 @@ venv/
 .pdm-python/
 .pdm.toml
 .pdm-python
+
+.DS_Store
+
+.env
+
+.env.local

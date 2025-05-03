@@ -1,0 +1,34 @@
+include LICENSE
+include README.md
+include src/README.md
+include src/requirements.min.txt
+include src/requirements.txt
+
+recursive-include src *.py
+
+global-exclude __pycache__
+global-exclude *.py[cod]
+global-exclude *.so
+global-exclude .env
+global-exclude .env.*
+global-exclude *.log
+global-exclude .pypirc
+global-exclude .pypirc.*
+global-exclude .git
+global-exclude .gitignore
+global-exclude .vscode
+global-exclude .idea
+global-exclude .pypirc
+global-exclude .pypirc.template
+global-exclude .DS_Store
+global-exclude *.egg-info
+global-exclude dist
+global-exclude build
+global-exclude .venv
+global-exclude venv
+global-exclude .mypy_cache
+global-exclude .ruff_cache
+global-exclude .pdm-build
+global-exclude .pdm-python
+global-exclude .pdm.toml 
+global-exclude .env
