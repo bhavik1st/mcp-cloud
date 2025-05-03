@@ -1,12 +1,37 @@
 [project]
-name = "mcp-cloud"
+name = "mcp_multi_cloud"
 version = "0.1.0"
-description = "MCP Server based on Anthropic's Model Context Protocol"
+description = "MCP Server to interact with multiple clouds based on Anthropic's Model Context Protocol"
 readme = "README.md"
 requires-python = ">=3.11"
+authors = [
+    {name = "Bhavik Shah", email = "bhavik1st@gmail.com"}
+]
+license = {text = "MIT License"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
 dependencies = [
     "httpx>=0.28.1",
     "mcp==1.6.0",
     "mcp[cli]>=1.6.0",
     "apache-libcloud>=3.8.0"
 ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mcp_multi_cloud"]
+package-name = "mcp_multi_cloud"
+
+[tool.hatch.build.targets.sdist]
+packages = ["mcp_multi_cloud"]
+package-name = "mcp_multi_cloud"

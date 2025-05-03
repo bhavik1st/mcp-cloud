@@ -3,15 +3,196 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Model Context Protocol Server for Public Cloud environments like AWS, Azure, and more.
-mcp-cloud is a Python MCP server:
-- Connects to public cloud to access resources like S3 Buckets, Azure Blobs
-- Provides tools performing certain operations like CRUD on resources.
+mcp-cloud is a Python MCP server that:
+- Connects to public cloud services to access resources like S3 Buckets and Azure Blobs
+- Provides tools for performing CRUD operations on cloud resources
+- Enables AI models to interact with cloud infrastructure securely
 
-NOTE: This a technology demonstrator only to be used with test data / account in cloud or with local LLM models like llama.
-       
-## Overview
+## Installation
 
-mcp-cloud is a Python server implementation of the Model Context Protocol (MCP) designed specifically for public cloud environments. It enables AI models to seamlessly connect with various cloud resources and services.
+You can install mcp-cloud using pip:
+
+```bash
+pip install mcp-cloud
+```
+
+Or install from source:
+
+```bash
+git clone https://github.com/yourusername/mcp_multi_cloud.git
+cd mcp-cloud
+pip install -e .
+```
+
+## Quick Start
+
+1. Set up your environment variables (see Configuration section below)
+2. Start the MCP server:
+   ```bash
+   python -m mcp_cloud.main
+   ```
+   or using uv:
+   ```bash
+   uv run --with mcp mcp run main.py
+   ```
+
+3. The server will start on `http://localhost:7008` by default
+
+## Configuration
+
+### Environment Variables
+
+Create a `.env` file in your project root with your cloud credentials:
+
+```env
+CLOUD_PROVIDER=aws  # or azure, google
+CLOUD_ACCESS_KEY=your_access_key
+CLOUD_SECRET_KEY=your_secret_key
+CLOUD_REGION=us-east-1  # or your preferred region
+```
+
+You can use the provided setup script to configure your environment:
+
+```bash
+python set_env.py
+```
+
+### Loading Environment Variables
+
+#### Unix/Linux/MacOS
+```bash
+source .env
+```
+
+#### Windows
+PowerShell:
+```powershell
+Get-Content .env | ForEach-Object {
+    if ($_ -match '^([^=]+)=(.*)$') {
+        $name = $matches[1]
+        $value = $matches[2]
+        Set-Item -Path "Env:$name" -Value $value
+    }
+}
+```
+
+## Usage
+
+### Basic Usage
+
+1. Start the MCP server:
+   ```bash
+   python -m mcp_cloud.main
+   ```
+
+2. Verify the server is running:
+   ```bash
+   mcp inspect info --url http://localhost:7008
+   ```
+
+### Integration with Claude Desktop
+
+Add the following configuration to your Claude Desktop settings:
+
+```json
+{
+  "mcpServers": {
+    "mcp-cloud": {
+      "command": "path/to/uv",
+      "args": [
+        "--directory",
+        "path/to/mcp_multi_cloud/src",
+        "run",
+        "--with",
+        "mcp",
+        "mcp",
+        "run",
+        "main.py"
+      ],
+      "env": {
+        "CLOUD_PROVIDER": "aws",
+        "CLOUD_ACCESS_KEY": "your_access_key",
+        "CLOUD_SECRET_KEY": "your_secret_key",
+        "CLOUD_REGION": "us-east-1"
+      }
+    }
+  }
+}
+```
+
+### Available Features
+
+#### Cloud Storage Operations
+- List buckets/containers
+- Create/delete buckets/containers
+- Upload files
+- Download files
+- List files in a bucket/container
+- Delete files
+
+#### Coming Soon
+- Cloud Compute operations
+- Additional cloud providers
+- Enhanced security features
+
+## Testing
+
+### Running Tests
+
+1. Unit Tests:
+   ```bash
+   python -m unittest test_mcp_server.py
+   ```
+
+2. Integration Tests:
+   ```bash
+   # Terminal 1: Start the server
+   python -m mcp_cloud.main
+
+   # Terminal 2: Run integration tests
+   mcp inspect test --url http://localhost:7008
+   ```
+
+For detailed testing instructions, see [TESTING.md](TESTING.md).
+
+## Security Considerations
+
+1. Never commit your `.env` file or expose your cloud credentials
+2. Use IAM roles and minimal permissions when possible
+3. Regularly rotate your access keys
+4. Monitor your cloud resources for unexpected usage
+
+## Troubleshooting
+
+### Common Issues
+
+1. Connection refused:
+   - Ensure the server is running
+   - Check if the port 7008 is available
+   - Verify firewall settings
+
+2. Authentication failures:
+   - Verify your cloud credentials are correct
+   - Ensure environment variables are properly set
+   - Check if your access keys are active
+
+3. Permission denied:
+   - Verify IAM roles and permissions
+   - Check resource-specific access policies
+
+### Getting Help
+
+- File an issue on GitHub
+- Check the [documentation](https://your-docs-url.com)
+- Join our [community Discord](https://your-discord-url.com)
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 # mcp-cloud
 Model Context Protocol Server for Public Cloud
